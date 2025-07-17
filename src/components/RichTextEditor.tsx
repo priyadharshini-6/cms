@@ -210,7 +210,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorP
       <div
         ref={editorRef}
         contentEditable
-        className="min-h-[300px] p-4 focus:outline-none text-base leading-relaxed"
+        className="min-h-[300px] p-4 focus:outline-none text-base leading-relaxed relative"
         onInput={updateContent}
         onKeyDown={handleKeyDown}
         style={{ 
@@ -219,16 +219,17 @@ export const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorP
           overflowY: 'auto'
         }}
         suppressContentEditableWarning={true}
-        data-placeholder={placeholder}
       />
-
-      <style jsx>{`
-        [contenteditable]:empty:before {
-          content: attr(data-placeholder);
-          color: #9CA3AF;
-          pointer-events: none;
-        }
-      `}</style>
+      
+      {/* Placeholder - only show when editor is empty */}
+      {editorRef.current && editorRef.current.innerHTML === '' && placeholder && (
+        <div 
+          className="absolute top-[65px] left-4 text-gray-400 pointer-events-none select-none"
+          style={{ zIndex: 1 }}
+        >
+          {placeholder}
+        </div>
+      )}
     </div>
   );
 };
