@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,11 +14,13 @@ import {
   User, 
   BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 
 interface BlogListProps {
   onEditPost: (post: any) => void;
+  onViewPost: (post: any) => void;
   currentUser: any;
   isAuthenticated: boolean;
 }
@@ -29,7 +30,7 @@ const mockPosts = [
   {
     id: 1,
     title: "The Future of Web Development",
-    content: "In this comprehensive guide, we explore the emerging trends and technologies that are shaping the future of web development. From AI-powered tools to new frameworks, the landscape is evolving rapidly.",
+    content: "<p>In this <strong>comprehensive guide</strong>, we explore the emerging trends and technologies that are shaping the future of web development. From <em>AI-powered tools</em> to new frameworks, the landscape is evolving rapidly.</p><ul><li>React and Next.js innovations</li><li>AI integration in development</li><li>Performance optimization techniques</li></ul>",
     author: "John Doe",
     authorId: 1,
     readabilityScore: 78,
@@ -39,7 +40,7 @@ const mockPosts = [
   {
     id: 2,
     title: "Understanding React Hooks",
-    content: "React Hooks have revolutionized how we write React components. This article dives deep into the most commonly used hooks and provides practical examples for each one.",
+    content: "<p><strong>React Hooks</strong> have revolutionized how we write React components. This article dives deep into the most commonly used hooks and provides <em>practical examples</em> for each one.</p><blockquote>Hooks let you use state and other React features without writing a class.</blockquote><ol><li>useState Hook</li><li>useEffect Hook</li><li>Custom Hooks</li></ol>",
     author: "Jane Smith",
     authorId: 2,
     readabilityScore: 85,
@@ -49,7 +50,7 @@ const mockPosts = [
   {
     id: 3,
     title: "Building Scalable APIs",
-    content: "Learn how to design and build APIs that can handle millions of requests. We cover best practices, performance optimization, and security considerations.",
+    content: "<p>Learn how to design and build APIs that can handle <strong>millions of requests</strong>. We cover best practices, performance optimization, and security considerations.</p><p><em>This guide includes real-world examples</em> and practical tips for scaling your backend infrastructure.</p>",
     author: "Mike Johnson",
     authorId: 3,
     readabilityScore: 72,
@@ -58,7 +59,7 @@ const mockPosts = [
   }
 ];
 
-export const BlogList = ({ onEditPost, currentUser, isAuthenticated }: BlogListProps) => {
+export const BlogList = ({ onEditPost, onViewPost, currentUser, isAuthenticated }: BlogListProps) => {
   const [posts, setPosts] = useState(mockPosts);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,7 +67,7 @@ export const BlogList = ({ onEditPost, currentUser, isAuthenticated }: BlogListP
 
   const filteredPosts = posts.filter(post =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.content.replace(/<[^>]*>/g, '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -131,6 +132,7 @@ export const BlogList = ({ onEditPost, currentUser, isAuthenticated }: BlogListP
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedPosts.map((post) => {
             const readability = getReadabilityBadge(post.readabilityScore);
+            const textContent = post.content.replace(/<[^>]*>/g, '');
             
             return (
               <Card key={post.id} className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:scale-105">
@@ -150,7 +152,7 @@ export const BlogList = ({ onEditPost, currentUser, isAuthenticated }: BlogListP
                 
                 <CardContent className="space-y-4">
                   <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
-                    {post.content}
+                    {textContent}
                   </p>
                   
                   <div className="flex items-center space-x-3 text-sm text-gray-500">
@@ -169,27 +171,38 @@ export const BlogList = ({ onEditPost, currentUser, isAuthenticated }: BlogListP
                     </div>
                   </div>
 
-                  {canModifyPost(post) && (
-                    <div className="flex space-x-2 pt-3 border-t">
-                      <Button
-                        onClick={() => onEditPost(post)}
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 hover:bg-blue-50 hover:border-blue-300"
-                      >
-                        <Edit3 className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(post.id)}
-                        size="sm"
-                        variant="outline"
-                        className="hover:bg-red-50 hover:border-red-300 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex space-x-2 pt-3 border-t">
+                    <Button
+                      onClick={() => onViewPost(post)}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 hover:bg-blue-50 hover:border-blue-300"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    
+                    {canModifyPost(post) && (
+                      <>
+                        <Button
+                          onClick={() => onEditPost(post)}
+                          size="sm"
+                          variant="outline"
+                          className="hover:bg-green-50 hover:border-green-300"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(post.id)}
+                          size="sm"
+                          variant="outline"
+                          className="hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );

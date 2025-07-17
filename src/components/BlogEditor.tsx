@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { calculateReadabilityScore } from '@/utils/readabilityCalculator';
+import { RichTextEditor } from './RichTextEditor';
 import { Save, X, FileText, BarChart3 } from 'lucide-react';
 
 interface BlogEditorProps {
@@ -25,7 +25,9 @@ export const BlogEditor = ({ post, currentUser, onSave, onCancel }: BlogEditorPr
 
   useEffect(() => {
     if (content) {
-      const score = calculateReadabilityScore(content);
+      // Strip HTML tags for readability calculation
+      const textContent = content.replace(/<[^>]*>/g, '');
+      const score = calculateReadabilityScore(textContent);
       setReadabilityScore(score);
     }
   }, [content]);
@@ -40,7 +42,8 @@ export const BlogEditor = ({ post, currentUser, onSave, onCancel }: BlogEditorPr
       return;
     }
 
-    if (!content.trim()) {
+    const textContent = content.replace(/<[^>]*>/g, '');
+    if (!textContent.trim()) {
       toast({
         title: "Validation Error", 
         description: "Please write some content for your blog post",
@@ -49,7 +52,7 @@ export const BlogEditor = ({ post, currentUser, onSave, onCancel }: BlogEditorPr
       return;
     }
 
-    if (content.trim().length < 50) {
+    if (textContent.trim().length < 50) {
       toast({
         title: "Content Too Short",
         description: "Blog post content should be at least 50 characters long",
@@ -93,6 +96,7 @@ export const BlogEditor = ({ post, currentUser, onSave, onCancel }: BlogEditorPr
   };
 
   const readability = getReadabilityLevel(readabilityScore);
+  const textContent = content.replace(/<[^>]*>/g, '');
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -132,17 +136,14 @@ export const BlogEditor = ({ post, currentUser, onSave, onCancel }: BlogEditorPr
             <Label htmlFor="content" className="text-lg font-semibold text-gray-700">
               Content
             </Label>
-            <Textarea
-              id="content"
-              placeholder="Write your blog post content here... Share your thoughts, ideas, and stories with the world!"
+            <RichTextEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={20}
-              className="text-base leading-relaxed border-2 focus:border-blue-500 transition-colors resize-none"
+              onChange={setContent}
+              placeholder="Write your blog post content here... Use the toolbar above to format your text with bold, italic, lists, and more!"
             />
             <div className="text-sm text-gray-500 flex justify-between">
-              <span>{content.length} characters</span>
-              <span>{content.trim().split(/\s+/).filter(word => word.length > 0).length} words</span>
+              <span>{textContent.length} characters</span>
+              <span>{textContent.trim().split(/\s+/).filter(word => word.length > 0).length} words</span>
             </div>
           </div>
 

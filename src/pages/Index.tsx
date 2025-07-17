@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import { BlogList } from '@/components/BlogList';
 import { BlogEditor } from '@/components/BlogEditor';
+import { BlogPost } from '@/components/BlogPost';
 import { AuthModal } from '@/components/AuthModal';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 
 const Index = () => {
@@ -13,6 +15,7 @@ const Index = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [viewingPost, setViewingPost] = useState(null);
 
   const handleLogin = (user) => {
     setCurrentUser(user);
@@ -25,6 +28,7 @@ const Index = () => {
     setIsAuthenticated(false);
     setShowEditor(false);
     setEditingPost(null);
+    setViewingPost(null);
   };
 
   const handleCreatePost = () => {
@@ -33,15 +37,37 @@ const Index = () => {
       return;
     }
     setEditingPost(null);
+    setViewingPost(null);
     setShowEditor(true);
   };
 
   const handleEditPost = (post) => {
     setEditingPost(post);
+    setViewingPost(null);
     setShowEditor(true);
   };
 
+  const handleViewPost = (post) => {
+    setViewingPost(post);
+    setShowEditor(false);
+    setEditingPost(null);
+  };
+
   const handleSavePost = () => {
+    setShowEditor(false);
+    setEditingPost(null);
+  };
+
+  const handleDeletePost = (postId) => {
+    toast({
+      title: "Post Deleted",
+      description: "The blog post has been successfully deleted."
+    });
+    setViewingPost(null);
+  };
+
+  const handleBackToList = () => {
+    setViewingPost(null);
     setShowEditor(false);
     setEditingPost(null);
   };
@@ -54,13 +80,35 @@ const Index = () => {
           currentUser={currentUser}
           onLogin={() => setShowAuthModal(true)}
           onLogout={handleLogout}
-          onBack={() => setShowEditor(false)}
+          onBack={handleBackToList}
         />
         <BlogEditor 
           post={editingPost}
           currentUser={currentUser}
           onSave={handleSavePost}
-          onCancel={() => setShowEditor(false)}
+          onCancel={handleBackToList}
+        />
+      </div>
+    );
+  }
+
+  if (viewingPost) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <Header 
+          isAuthenticated={isAuthenticated}
+          currentUser={currentUser}
+          onLogin={() => setShowAuthModal(true)}
+          onLogout={handleLogout}
+          onBack={handleBackToList}
+        />
+        <BlogPost 
+          post={viewingPost}
+          currentUser={currentUser}
+          isAuthenticated={isAuthenticated}
+          onBack={handleBackToList}
+          onEdit={handleEditPost}
+          onDelete={handleDeletePost}
         />
       </div>
     );
@@ -96,6 +144,7 @@ const Index = () => {
 
         <BlogList 
           onEditPost={handleEditPost}
+          onViewPost={handleViewPost}
           currentUser={currentUser}
           isAuthenticated={isAuthenticated}
         />
